@@ -1,0 +1,21 @@
+[package]
+name = "bevy_softbuffer"
+version = "0.0.1"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["x11"]
+
+# Display server protocol support (X11 is enabled by default)
+wayland = ["bevy/wayland"]
+x11 = ["bevy/x11"]
+
+[dependencies]
+bevy = { version = "0.8", default_features = false, features = ["bevy_winit"] }
+softbuffer = "0.1.1"
+raw-window-handle = "0.5.0"
+
+[dev-dependencies]
+rand = "0.8"
