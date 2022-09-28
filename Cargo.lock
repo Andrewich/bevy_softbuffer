@@ -1774,7 +1774,7 @@ dependencies = [
 [[package]]
 name = "softbuffer"
 version = "0.1.1"
-source = "git+https://github.com/Andrewich/softbuffer?branch=raw_window_handle_0.4.2#b3d0260bf248c975eb3bdf7e1bc51c67060568f8"
+source = "git+https://github.com/Andrewich/softbuffer?branch=raw_window_handle_0.4.2#e67d9aeeae3952c4a8120d5f459cd9b1727c215f"
 dependencies = [
  "cocoa",
  "core-graphics 0.22.3",

@@ -7,8 +7,6 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.8", default_features = false, features = ["bevy_winit"] }
-#winit = { version = "0.27.2", default-features = false }
-#raw-window-handle = "0.4.2"
 softbuffer = { git = "https://github.com/Andrewich/softbuffer", branch = "raw_window_handle_0.4.2" }
 
 [target.'cfg(target_os = "windows")'.dependencies.winapi]

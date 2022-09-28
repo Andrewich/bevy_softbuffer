@@ -106,6 +106,26 @@ fn draw_objects(
 //     mut options: Res<SoftBufferOptions>,
     query: Query<(&Position, &Size, &Color)>,
 ) {
+
+    let buffer = (0..((640 * 480) as usize))
+                    .map(|index| {
+                        let y = index / (640 as usize);
+                        let x = index % (640 as usize);
+                        let red = x % 255;
+                        let green = y % 255;
+                        let blue = (x * y) % 255;
+
+                        let color = blue | (green << 8) | (red << 16);
+
+                        color as u32
+                    })
+                    .collect::<Vec<_>>();
+
+    resource.graphics_context.set_buffer(&buffer, 640, 480);
+
+    //clear_screen();
+    //let buffer = vec![128u32; 640 * 480];
+    //resource.graphics_context.set_buffer(&buffer, 640, 480);
     //let buffer = resource.buffer;
     //buffer[10] = 0;
 //     //let buffer = pixels_resource.buffer.render();  
