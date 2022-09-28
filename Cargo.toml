@@ -1,21 +1,16 @@
 [package]
 name = "bevy_softbuffer"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[features]
-default = ["x11"]
-
-# Display server protocol support (X11 is enabled by default)
-wayland = ["bevy/wayland"]
-x11 = ["bevy/x11"]
-
 [dependencies]
 bevy = { version = "0.8", default_features = false, features = ["bevy_winit"] }
-softbuffer = "0.1.1"
-raw-window-handle = "0.5.0"
+#winit = { version = "0.27.2", default-features = false }
+#raw-window-handle = "0.4.2"
+softbuffer = { git = "https://github.com/Andrewich/softbuffer", branch = "raw_window_handle_0.4.2" }
 
-[dev-dependencies]
-rand = "0.8"
+[target.'cfg(target_os = "windows")'.dependencies.winapi]
+version = "0.3.9"
+features = ["windef", "wingdi", "winuser"]

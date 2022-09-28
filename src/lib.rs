@@ -1,6 +1,6 @@
-// pub mod prelude {
-//     pub use crate::{SoftBufferOptions, PixelsPlugin, PixelsResource, PixelsStage};
-// }
+pub mod prelude {
+    pub use crate::{SoftBufferOptions, SoftBufferPlugin, SoftBufferResource, SoftBufferStage};
+}
 
 pub use softbuffer;
 
@@ -8,18 +8,15 @@ use bevy::{
     diagnostic::{Diagnostic, DiagnosticId, Diagnostics},
     prelude::*,
     window::{WindowBackendScaleFactorChanged, WindowId, WindowResized},
-    winit::WinitWindows,
+    winit::WinitWindows,    
 };
-use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle, RawDisplayHandle, RawWindowHandle};
 use softbuffer::GraphicsContext;
 use std::time::Instant;
-use std::sync::Arc;
-use std::cell::{Ref, RefCell};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, StageLabel)]
 pub enum SoftBufferStage {
     Draw,
-    Render,
+    Render,    
 }
 
 #[derive(Debug, Clone)]
@@ -39,33 +36,68 @@ impl Default for SoftBufferOptions {
     }
 }
 
-#[derive(Default)]
-pub struct Device<W: HasRawWindowHandle> {
-    context: RefCell<Option<GraphicsContext<W>>>,
+pub struct SoftBufferResource {
+    pub buffer: Vec<u32>,    
+    pub window_id: WindowId,    
 }
 
-//impl Device {
-    // pub fn get_context(&self) -> std::cell::Ref<web_sys::WebGl2RenderingContext> {
-    //     return Ref::map(self.context.borrow(), |t| {
-    //         t.as_ref().expect("webgl context is set")
-    //     });
-    // }
+pub struct SoftBufferPlugin;
 
-    // pub fn set_context(&self, context: web_sys::WebGl2RenderingContext) {
-    //     *self.context.borrow_mut() = Some(context);
-    // }
-//}
+impl Plugin for SoftBufferPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_stage_after(
+            CoreStage::PostUpdate,
+            SoftBufferStage::Draw,
+            SystemStage::parallel(),
+        )
+        .add_stage_after(
+            SoftBufferStage::Draw,
+            SoftBufferStage::Render,
+            SystemStage::parallel(),
+        )        
+        .init_resource::<SoftBufferOptions>()
+        .add_startup_system_to_stage(StartupStage::PreStartup, Self::setup)        
+        .add_system_to_stage(SoftBufferStage::Render, Self::render);
+    }
+}
 
-// impl std::fmt::Debug for Device {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         f.write_str(&format!("Device: {:?}", self.context.borrow()))
-//     }
-// }
+impl SoftBufferPlugin {
+    pub const RENDER_TIME: DiagnosticId =
+        DiagnosticId::from_u128(1187582084072339577959028643519383692);
 
-unsafe impl Send for Device<W: HasRawWindowHandle> {}
-unsafe impl Sync for Device<W: HasRawWindowHandle> {}
+    pub fn setup(
+        mut commands: Commands,
+        mut diagnostics: ResMut<Diagnostics>,
+        options: Res<SoftBufferOptions>,
+        windows: Res<Windows>,
+        winit_windows: NonSend<WinitWindows>,
+    ) {
+        diagnostics.add(Diagnostic::new(Self::RENDER_TIME, "render_time", 20).with_suffix("s"));
 
+        let window_id = windows
+            .get_primary()
+            .expect("primary window not found")
+            .id();
 
-pub struct PixelsResource {
-    pub device: Arc<Device>,
+        let winit_window = winit_windows
+            .get_window(window_id)
+            .expect("failed to get primary winit window");
+
+        let window_size = winit_window.inner_size();
+        let buffer = vec![0u32; window_size.width as usize * window_size.height as usize];
+
+        let mut graphics_context = unsafe { GraphicsContext::new(winit_window) }.unwrap();
+
+        commands.insert_resource(SoftBufferResource { buffer, window_id });
+    }    
+
+    pub fn render(resource: Res<SoftBufferResource>, mut diagnostics: ResMut<Diagnostics>) {
+        let start = Instant::now();
+
+        //resource.pixels.render().expect("failed to render pixels");
+
+        let end = Instant::now();
+        //let render_time = end.duration_since(start);
+        //diagnostics.add_measurement(Self::RENDER_TIME, render_time.as_secs_f64());
+    }
 }
