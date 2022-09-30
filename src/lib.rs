@@ -39,7 +39,7 @@ impl Default for SoftBufferOptions {
 pub struct SoftBufferResource {
     pub buffer: Vec<u32>,    
     pub window_id: WindowId,
-    pub graphics_context: GraphicsContext,
+    graphics_context: GraphicsContext,
 }
 
 pub struct SoftBufferPlugin;
@@ -84,29 +84,26 @@ impl SoftBufferPlugin {
             .get_window(window_id)
             .expect("failed to get primary winit window");
 
-        let window_size = winit_window.inner_size();
-        let buffer = vec![0u32; window_size.width as usize * window_size.height as usize];
+        //let window_size = winit_window.inner_size();
+        let buffer = vec![0u32; options.width as usize * options.height as usize];
 
-        let mut graphics_context = unsafe { GraphicsContext::new(winit_window) }.unwrap();
+        let graphics_context = unsafe { GraphicsContext::new(winit_window) }.unwrap();
 
         commands.insert_resource(SoftBufferResource { buffer, window_id, graphics_context });
     }
 
-    pub fn clear_screen(mut resource: ResMut<SoftBufferResource>) {
-        resource.buffer = vec![128u32; 640 * 480];
-    }
-
-    pub fn render(resource: Res<SoftBufferResource>, mut diagnostics: ResMut<Diagnostics>) {
+    pub fn render(
+        resource: Res<SoftBufferResource>,
+        options: Res<SoftBufferOptions>,
+        mut diagnostics: ResMut<Diagnostics>
+    ) {
         let start = Instant::now();
 
-        //resource.pixels.render().expect("failed to render pixels");
-        //let buffer = &resource.buffer;
-        //let buffer = vec![0u32; 640 * 480];
-        //resource.graphics_context.set_buffer(&resource.buffer, 640, 480);
-        //graphics_context.set_buffer(&buffer, width as u16, height as u16);
+        //resource.pixels.render().expect("failed to render pixels");        
+        resource.graphics_context.set_buffer(&resource.buffer, options.width as u16, options.height as u16);        
 
         let end = Instant::now();
-        //let render_time = end.duration_since(start);
-        //diagnostics.add_measurement(Self::RENDER_TIME, render_time.as_secs_f64());
+        let render_time = end.duration_since(start);
+        diagnostics.add_measurement(Self::RENDER_TIME, || render_time.as_secs_f64());
     }
 }

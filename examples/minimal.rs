@@ -7,7 +7,7 @@ use bevy::{
 use bevy_softbuffer::prelude::*;
 //use rand::prelude::*;
 
-const WIDTH: u32 = 640;
+const WIDTH: u32 = 720;
 const HEIGHT: u32 = 480;
 
 #[derive(Bundle, Debug)]
@@ -63,10 +63,10 @@ fn main() {
         .add_startup_system(setup)
         //.add_system(bounce)
         //.add_system(movement.after(bounce))
-        .add_system(exit_on_escape)
+        .add_system(exit_on_escape)        
+        .add_system_to_stage(SoftBufferStage::Draw, draw_background)
         .add_system_to_stage(SoftBufferStage::Draw, draw_objects)
-        //.add_system_to_stage(SoftBufferStage::Draw, draw_background)
-        //.add_system_to_stage(SoftBufferStage::Draw, draw_objects.after(draw_background))
+        .add_system_to_stage(SoftBufferStage::Draw, draw_objects.after(draw_background))
         .run();
 }
 
@@ -96,38 +96,41 @@ fn exit_on_escape(keyboard_input: Res<Input<KeyCode>>, mut app_exit_events: Even
     }
 }
 
-// fn draw_background(mut pixels_resource: ResMut<SoftBufferResource>) {
-//     //let frame = pixels_resource.pixels.get_frame();
-//     //frame.copy_from_slice(&[0x48, 0xb2, 0xe8, 0xff].repeat(frame.len() / 4));
-// }
-
-fn draw_objects(
-    mut resource: ResMut<SoftBufferResource>,
-//     mut options: Res<SoftBufferOptions>,
-    query: Query<(&Position, &Size, &Color)>,
+fn draw_background(
+    mut pixels_resource: ResMut<SoftBufferResource>,
+    options: Res<SoftBufferOptions>,
 ) {
-
-    let buffer = (0..((640 * 480) as usize))
-                    .map(|index| {
-                        let y = index / (640 as usize);
-                        let x = index % (640 as usize);
-                        let red = x % 255;
-                        let green = y % 255;
-                        let blue = (x * y) % 255;
-
-                        let color = blue | (green << 8) | (red << 16);
+    let buffer = (0..((options.width * options.height) as usize))
+                    .map(|_| {                        
+                        let color = 128 | (128 << 8) | (128 << 16);
 
                         color as u32
                     })
-                    .collect::<Vec<_>>();
+                    .collect::<Vec<_>>();    
 
-    resource.graphics_context.set_buffer(&buffer, 640, 480);
+    pixels_resource.buffer = buffer;
+}
 
-    //clear_screen();
-    //let buffer = vec![128u32; 640 * 480];
-    //resource.graphics_context.set_buffer(&buffer, 640, 480);
-    //let buffer = resource.buffer;
-    //buffer[10] = 0;
-//     //let buffer = pixels_resource.buffer.render();  
-//     unsafe { resource.handle.set_buffer(&resource.buffer, options.width as u16, options.height as u16) };  
+#[inline]
+fn get_index(width: usize, x: usize, y: usize) -> usize {
+    y * width + x
+}
+
+#[inline]
+fn set_pixel(b: &mut Vec<u32>, index: usize, color: u32) {
+    b[index] = color;
+}
+
+fn draw_objects(
+    mut resource: ResMut<SoftBufferResource>,
+    options: Res<SoftBufferOptions>,
+    query: Query<(&Position, &Size, &Color)>,
+) {
+
+    let color = 0;
+
+    for i in 10..30 {
+        let index = get_index(options.width as usize, i, 50);
+        set_pixel(&mut resource.buffer, index, color);
+    }
 }
